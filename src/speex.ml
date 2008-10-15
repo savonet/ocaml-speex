@@ -338,7 +338,7 @@ struct
     exception Not_speex
     exception Internal
 
-    type t = (Decoder.t*Ogg.Stream.t*Ogg.Sync.t*int*int*(string*(string*string) list)*Header.t) ref
+    type t = (Decoder.t*Ogg.Stream.t*Ogg.Sync.t*nativeint*int*(string*(string*string) list)*Header.t) ref
 
     let open_sync sync = 
        (** Test wether the stream contains speex data *)

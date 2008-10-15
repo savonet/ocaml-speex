@@ -175,7 +175,7 @@ sig
 
     val open_feed : (int -> string*int) -> t
 
-    val serial : t -> int
+    val serial : t -> nativeint
 
     val comments : t -> (string*string) list
 
