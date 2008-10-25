@@ -245,6 +245,7 @@ value caml_speex_init_header_bytecode(value *args, int n)
 CAMLprim value caml_speex_encode_header(value v,  value o_comments, value o_stream_state)
 {
   CAMLparam3(v,o_stream_state,o_comments);
+  CAMLlocal1(ret);
   ogg_packet op;
   int packet_size;
   ogg_stream_state *os = Stream_state_val(o_stream_state);
@@ -253,6 +254,7 @@ CAMLprim value caml_speex_encode_header(value v,  value o_comments, value o_stre
   char *comments;
   int comments_length;
   int i;
+  ret = caml_alloc_tuple(2);
 
   unsigned char *data = (unsigned char *)speex_header_to_packet(header_of_value(v,&header), &packet_size);
   op.packet = data;
@@ -261,7 +263,7 @@ CAMLprim value caml_speex_encode_header(value v,  value o_comments, value o_stre
   op.e_o_s = 0;
   op.granulepos = 0;
   op.packetno = 0;
-  ogg_stream_packetin(os, &op);
+  Store_field(ret,0,value_of_packet(&op));
   free(data);
 
     /* Comment Packet */
@@ -275,7 +277,7 @@ CAMLprim value caml_speex_encode_header(value v,  value o_comments, value o_stre
   op.e_o_s = 0;
   op.granulepos = 0;
   op.packetno = 1;
-  ogg_stream_packetin(os, &op);
+  Store_field(ret,1,value_of_packet(&op));
 
   free(comments);
   CAMLreturn(Val_unit);

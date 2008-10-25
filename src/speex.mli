@@ -99,6 +99,8 @@ sig
     ?mode:mode ->
     ?vbr:bool -> nb_channels:int -> bitrate:int -> rate:int -> unit -> t 
 
+  val encode_header_packetout : t -> (string*string) list -> Ogg.Stream.packet*Ogg.Stream.packet
+
   val encode_header : t -> (string*string) list -> Ogg.Stream.t -> unit
 
   val header_of_packet : Ogg.Stream.packet -> t

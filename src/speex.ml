@@ -169,13 +169,18 @@ struct
   let init ?(frames_per_packet=1) ?(mode=Wideband) ?(vbr=true) ~nb_channels ~bitrate ~rate () = 
     init rate nb_channels (internal_mode_of_mode mode) frames_per_packet vbr bitrate
 
-  external encode_header : t -> string array -> Ogg.Stream.t -> unit = "caml_speex_encode_header"
+  external encode_header_packetout : t -> string array -> Ogg.Stream.packet*Ogg.Stream.packet = "caml_speex_encode_header"
 
-  let encode_header e l s = 
+  let encode_header_packetout e l = 
     let l = 
       List.map (fun (x,y) -> Printf.sprintf "%s=%s" x y) l
     in
-    encode_header e (Array.of_list l) s;
+    encode_header_packetout e (Array.of_list l)
+
+  let encode_header e l s =
+    let p1,p2 = encode_header_packetout e l in
+    Ogg.Stream.put_packet s p1;
+    Ogg.Stream.put_packet s p2
 
   external header_of_packet : Ogg.Stream.packet -> t = "caml_speex_header_of_packet"
 
