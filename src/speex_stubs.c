@@ -242,13 +242,12 @@ value caml_speex_init_header_bytecode(value *args, int n)
                                 args[3],args[4],args[5]);
 }
 
-CAMLprim value caml_speex_encode_header(value v,  value o_comments, value o_stream_state)
+CAMLprim value caml_speex_encode_header(value v, value o_comments)
 {
-  CAMLparam3(v,o_stream_state,o_comments);
+  CAMLparam2(v,o_comments);
   CAMLlocal1(ret);
   ogg_packet op;
   int packet_size;
-  ogg_stream_state *os = Stream_state_val(o_stream_state);
   SpeexHeader header;
   char *vendor_string = "ocaml-speex by the savonet team (http://savonet.sf.net/)";
   char *comments;
@@ -280,7 +279,7 @@ CAMLprim value caml_speex_encode_header(value v,  value o_comments, value o_stre
   Store_field(ret,1,value_of_packet(&op));
 
   free(comments);
-  CAMLreturn(Val_unit);
+  CAMLreturn(ret);
 }
 
 CAMLprim value caml_speex_header_of_packet(value packet)
@@ -301,7 +300,7 @@ CAMLprim value caml_speex_header_of_packet(value packet)
 typedef struct cenc_t
 {
   int position;
-  SpeexBits *bits;
+  SpeexBits bits;
   void *enc;
   int fpp;
 } cenc_t;
@@ -311,8 +310,7 @@ typedef struct cenc_t
 static void finalize_speex_enc(value v)
 {
   cenc_t *enc = Enc_val(v);
-  speex_bits_destroy(enc->bits);
-  free(enc->bits);
+  speex_bits_destroy(&enc->bits);
   speex_encoder_destroy(enc->enc);
   free(enc);
 }
@@ -338,12 +336,8 @@ CAMLprim value ocaml_speex_enc_init(value m, value fpp)
   void *enc = speex_encoder_init(mode);
   if (enc == NULL)
     caml_failwith("malloc");
-  SpeexBits *bits = malloc(sizeof(SpeexBits));
-  if (bits == NULL)
-    caml_failwith("malloc");
-  speex_bits_init(bits);
+  speex_bits_init(&cen->bits);
   cen->enc  = enc;
-  cen->bits = bits;
   cen->position = 0;
   cen->fpp = Int_val(fpp);
   ret = caml_alloc_custom(&speex_enc_ops, sizeof(cenc_t *), 1, 0);
@@ -381,7 +375,6 @@ CAMLprim value ocaml_speex_encode_page(value e_state, value o_chans, value o_str
   ogg_stream_state *os = Stream_state_val(o_stream_state);
   cenc_t *cenc = Enc_val(e_state);
   void *enc = cenc->enc;
-  SpeexBits *bits = cenc->bits;
   ogg_page og;
   ogg_packet op;
   int state = cenc->position - 1;
@@ -435,8 +428,8 @@ CAMLprim value ocaml_speex_encode_page(value e_state, value o_chans, value o_str
  
     caml_enter_blocking_section();
     if (chans == 2)
-      speex_encode_stereo(data,frame_size,bits);
-    speex_encode(enc,data,bits);
+      speex_encode_stereo(data,frame_size,&cenc->bits);
+    speex_encode(enc,data,&cenc->bits);
     caml_leave_blocking_section();
 
     state++;
@@ -444,9 +437,9 @@ CAMLprim value ocaml_speex_encode_page(value e_state, value o_chans, value o_str
     if ((state+1)%fpp!=0)
       continue;
 
-    speex_bits_insert_terminator(bits);
-    nbBytes = speex_bits_write(bits, cbits, frame_size*fpp);
-    speex_bits_reset(bits);
+    speex_bits_insert_terminator(&cenc->bits);
+    nbBytes = speex_bits_write(&cenc->bits, cbits, frame_size*fpp);
+    speex_bits_reset(&cenc->bits);
     op.packet = (unsigned char *)cbits;
     op.bytes = nbBytes;
     op.b_o_s = 0;
@@ -472,7 +465,6 @@ CAMLprim value ocaml_speex_encode_page_int(value e_state, value o_chans, value o
   ogg_stream_state *os = Stream_state_val(o_stream_state);
   cenc_t *cenc = Enc_val(e_state);
   void *enc = cenc->enc;
-  SpeexBits *bits = cenc->bits;
   ogg_page og;
   ogg_packet op;
   int state = cenc->position - 1;
@@ -527,8 +519,8 @@ CAMLprim value ocaml_speex_encode_page_int(value e_state, value o_chans, value o
 
     caml_enter_blocking_section();
     if (chans == 2) 
-      speex_encode_stereo_int(data,frame_size,bits);
-    speex_encode_int(enc,data,bits);
+      speex_encode_stereo_int(data,frame_size,&cenc->bits);
+    speex_encode_int(enc,data,&cenc->bits);
     caml_leave_blocking_section();
 
     state++;
@@ -536,16 +528,16 @@ CAMLprim value ocaml_speex_encode_page_int(value e_state, value o_chans, value o
     if ((state+1)%fpp!=0)
       continue;
 
-    speex_bits_insert_terminator(bits);
-    nbBytes = speex_bits_write(bits, cbits, frame_size);
-    speex_bits_reset(bits);
+    speex_bits_insert_terminator(&cenc->bits);
+    nbBytes = speex_bits_write(&cenc->bits, cbits, frame_size);
+    speex_bits_reset(&cenc->bits);
     op.packet = (unsigned char *)cbits;
     op.bytes = nbBytes;
     op.b_o_s = 0;
     op.e_o_s = 0;
     op.granulepos = (state+1)*frame_size;
     op.packetno = 2+state/fpp;
-
+    
     /* Put the packet in the ogg stream. */
     ogg_stream_packetin(os, &op);
   } while (ogg_stream_pageout(os, &og) <= 0);
@@ -585,7 +577,7 @@ CAMLprim value ocaml_speex_encoder_eos(value v, value o_stream_state)
 typedef struct cdec_t
 {
   SpeexStereoState *stereo;
-  SpeexBits *bits;
+  SpeexBits bits;
   void *dec;
 } cdec_t;
 
@@ -595,8 +587,7 @@ static void finalize_speex_dec(value v)
 {
   cdec_t *cdec = Dec_val(v);
   speex_stereo_state_destroy(cdec->stereo);
-  speex_bits_destroy(cdec->bits);
-  free(cdec->bits);
+  speex_bits_destroy(&cdec->bits);
   speex_decoder_destroy(cdec->dec);
   free(cdec);
 }
@@ -622,15 +613,11 @@ CAMLprim value ocaml_speex_dec_init(value m)
   SpeexStereoState *stereo = speex_stereo_state_init();
   if (stereo == NULL)
     caml_failwith("malloc");
-  SpeexBits *bits = malloc(sizeof(SpeexBits));
-  if (bits == NULL)
-    caml_failwith("malloc");
-  speex_bits_init(bits);
   cdec_t *cdec = malloc(sizeof(cdec_t));
   if (cdec == NULL)
     caml_failwith("malloc");
   cdec->dec = dec;
-  cdec->bits = bits;
+  speex_bits_init(&cdec->bits);
   cdec->stereo = stereo;
 
   SpeexCallback callback;
@@ -675,7 +662,6 @@ CAMLprim value ocaml_speex_decoder_decode(value e, value o_chans, value s, value
   ogg_stream_state *os = Stream_state_val(s);
   cdec_t *cdec = Dec_val(e);
   void *dec = cdec->dec;
-  SpeexBits *bits = cdec->bits;
   SpeexStereoState *stereo = cdec->stereo;
   int chans = Int_val(o_chans);
   ogg_packet op;
@@ -695,11 +681,11 @@ CAMLprim value ocaml_speex_decoder_decode(value e, value o_chans, value s, value
     }
     
     /* Copy Ogg packet to Speex bitstream */
-    speex_bits_read_from(bits, (char*)op.packet, op.bytes);
+    speex_bits_read_from(&cdec->bits, (char*)op.packet, op.bytes);
 
     while (1) {
       caml_enter_blocking_section();
-      n = speex_decode(dec, bits, out);
+      n = speex_decode(dec, &cdec->bits, out);
       caml_leave_blocking_section();
      
       if (n == -1)
@@ -730,7 +716,6 @@ CAMLprim value ocaml_speex_decoder_decode_int(value e, value o_chans, value s, v
   ogg_stream_state *os = Stream_state_val(s);
   cdec_t *cdec = Dec_val(e);
   void *dec = cdec->dec;
-  SpeexBits *bits = cdec->bits;
   SpeexStereoState *stereo = cdec->stereo;
   int chans = Int_val(o_chans);
   ogg_packet op;
@@ -751,11 +736,11 @@ CAMLprim value ocaml_speex_decoder_decode_int(value e, value o_chans, value s, v
     }
     
     /* Copy Ogg packet to Speex bitstream */
-    speex_bits_read_from(bits, (char*)op.packet, op.bytes);
+    speex_bits_read_from(&cdec->bits, (char*)op.packet, op.bytes);
 
     while (1) {
       caml_enter_blocking_section();
-      n = speex_decode_int(dec, bits, out);
+      n = speex_decode_int(dec, &cdec->bits, out);
       caml_leave_blocking_section();
    
       if (n == -1)
