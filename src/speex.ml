@@ -156,10 +156,10 @@ struct
   let header_string_length = 8
   let header_version_length = 20
  
-  external init : int -> int -> internal_mode -> int -> bool -> int -> t = "caml_speex_init_header_bytecode" "caml_speex_init_header" 
+  external init : int -> int -> internal_mode -> int -> bool -> t = "caml_speex_init_header" 
   
-  let init ?(frames_per_packet=1) ?(mode=Wideband) ?(vbr=true) ~nb_channels ~bitrate ~rate () = 
-    init rate nb_channels (internal_mode_of_mode mode) frames_per_packet vbr bitrate
+  let init ?(frames_per_packet=1) ?(mode=Wideband) ?(vbr=true) ~nb_channels ~rate () = 
+    init rate nb_channels (internal_mode_of_mode mode) frames_per_packet vbr
 
   external encode_header_packetout : t -> string array -> Ogg.Stream.packet*Ogg.Stream.packet = "caml_speex_encode_header"
 

@@ -224,22 +224,16 @@ CAMLprim value value_of_header(SpeexHeader *header)
   CAMLreturn(ret);
 }
 
-CAMLprim value caml_speex_init_header(value rate, value chans, value mode, value fpp, value vbr, value bitrate)
+CAMLprim value caml_speex_init_header(value rate, value chans, value mode, value fpp, value vbr)
 {
   CAMLparam1(mode);
   struct SpeexMode *m = Mode_val(mode);
   SpeexHeader header;
-  speex_init_header(&header,Int_val(rate),Int_val(chans),m);
+  speex_init_header(&header,Int_val(rate),1,m);
   header.frames_per_packet = Int_val(fpp);
   header.vbr = Int_val(vbr);
-  header.bitrate = Int_val(bitrate);
+  header.nb_channels = Int_val(chans);
   CAMLreturn(value_of_header(&header));
-}
-
-value caml_speex_init_header_bytecode(value *args, int n)
-{
-  return caml_speex_init_header(args[0],args[1],args[2],
-                                args[3],args[4],args[5]);
 }
 
 CAMLprim value caml_speex_encode_header(value v, value o_comments)

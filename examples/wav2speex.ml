@@ -51,14 +51,21 @@ let usage = "usage: wav2speex [options] source destination"
 let float = ref false
 let mode =  ref Wideband
 let fpp = ref 5
-let vbr = ref true
-let bitrate = ref (80*1024)
+let vbr = ref false
+let quality = ref 7
 
 let _ =
+  let f = Printf.sprintf in
+  let string_of_mode m = 
+    match m with
+      | Narrowband     -> "narrowband"
+      | Wideband       -> "wideband"
+      | Ultra_wideband -> "ultra-wideband"
+  in
   Arg.parse
     [
-      "--float", Arg.Bool (fun b -> float := b ),
-      "Use floats for decoding. Default: false" ;
+      "--float", Arg.Unit (fun b -> float := true ),
+      f "Use floats for decoding. Default: %b" !float;
       "--mode", Arg.String 
         (fun b -> 
           match b with
@@ -66,14 +73,14 @@ let _ =
             | "wideband"       -> mode := Wideband
             | "ultra-wideband" -> mode := Ultra_wideband
             | _ -> failwith "unkown mode"),
-      "Encoding mode, one of \"narrowband\", \"wideband\" or \"ultra-wideband\". \
-       Default: wideband" ;
+      f "Encoding mode, one of \"narrowband\", \"wideband\" or \"ultra-wideband\". \
+         Default: %s" (string_of_mode !mode);
       "--frame_per_packet", Arg.Int (fun b -> fpp := b ),
-      "Frames per Ogg packet. Default: 5" ;
-      "--vbr", Arg.Bool (fun b -> vbr := b ),
-      "Encode in vbr mode. Default: true" ;
-      "--bitrate", Arg.Int (fun b -> bitrate := b*1024 ),
-      "Encoding bitrate. Default: 80" ;
+      f "Frames per Ogg packet. Default: %i" !fpp;
+      "--vbr", Arg.Unit (fun b -> vbr := true ),
+      f "Encode in vbr mode. Default: %b" !vbr;
+      "--quality", Arg.Int (fun b -> quality := b ),
+      f "Encoding bitrate, in Kbps. Default: %i" !quality;
     ]
     (
       let pnum = ref (-1) in
@@ -125,7 +132,10 @@ let _ =
         ans
     in
     let enc = Encoder.init !mode !fpp in
-    Encoder.set enc SPEEX_SET_BITRATE !bitrate;
+    if not !vbr then
+      Encoder.set enc SPEEX_SET_QUALITY !quality
+    else
+      Encoder.set enc SPEEX_SET_VBR_QUALITY !quality;
     Encoder.set enc SPEEX_SET_SAMPLING_RATE infreq;
     let ivbr = 
       if !vbr then 1 else 0 
@@ -136,7 +146,7 @@ let _ =
     let header = Header.init ~rate:infreq ~nb_channels:channels 
                              ~mode:(!mode) ~vbr:(!vbr) 
                              ~frames_per_packet:(!fpp) 
-                             ~bitrate:(!bitrate) () in
+                             () in
     Header.encode_header header [] os;
     output_string oc (Ogg.Stream.flush os);
     let start = Unix.time () in

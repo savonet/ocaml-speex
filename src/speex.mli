@@ -113,7 +113,7 @@ sig
   val init :
     ?frames_per_packet:int ->
     ?mode:mode ->
-    ?vbr:bool -> nb_channels:int -> bitrate:int -> rate:int -> unit -> t 
+    ?vbr:bool -> nb_channels:int -> rate:int -> unit -> t 
 
   val encode_header_packetout : t -> (string*string) list -> Ogg.Stream.packet*Ogg.Stream.packet
 
