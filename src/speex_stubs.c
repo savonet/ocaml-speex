@@ -758,3 +758,70 @@ CAMLprim value ocaml_speex_decoder_decode_int(value e, value o_chans, value s, v
   CAMLreturn(Val_unit);
 }
 
+/* Ogg skeleton support */
+
+/* Wrappers */
+static void write32le(unsigned char *ptr,ogg_uint32_t v)
+{
+  ptr[0]=v&0xff;
+  ptr[1]=(v>>8)&0xff;
+  ptr[2]=(v>>16)&0xff;
+  ptr[3]=(v>>24)&0xff;
+}
+
+static void write64le(unsigned char *ptr,ogg_int64_t v)
+{
+  ogg_uint32_t hi=v>>32;
+  ptr[0]=v&0xff;
+  ptr[1]=(v>>8)&0xff;
+  ptr[2]=(v>>16)&0xff;
+  ptr[3]=(v>>24)&0xff;
+  ptr[4]=hi&0xff;
+  ptr[5]=(hi>>8)&0xff;
+  ptr[6]=(hi>>16)&0xff;
+  ptr[7]=(hi>>24)&0xff;
+}
+
+/* Values from http://xiph.org/ogg/doc/skeleton.html */
+#define FISBONE_IDENTIFIER "fisbone\0"
+#define FISBONE_MESSAGE_HEADER_OFFSET 44
+#define FISBONE_SIZE 52
+
+/* Values from speexenc.c in speexenc */
+CAMLprim value ocaml_speex_skeleton_fisbone(value serial, value _header, value start, value content)
+{
+  CAMLparam4(serial,_header,start,content);
+  CAMLlocal1(packet);
+  ogg_packet op;
+  SpeexHeader header;
+  header_of_value(_header,&header);
+  int len = FISBONE_SIZE+caml_string_length(content);
+
+  memset (&op, 0, sizeof (op));
+  op.packet = malloc(len);
+  if (op.packet == NULL)
+    caml_failwith("malloc");
+
+  memset (op.packet, 0, len);
+  /* it will be the fisbone packet for the speex audio */
+  memcpy (op.packet, FISBONE_IDENTIFIER, 8); /* identifier */
+  write32le(op.packet+8, FISBONE_MESSAGE_HEADER_OFFSET); /* offset of the message header fields */
+  write32le(op.packet+12, Nativeint_val(serial)); /* serialno of the vorbis stream */
+  write32le(op.packet+16, 2 + header.extra_headers); /* number of header packet */
+  /* granulerate, temporal resolution of the bitstream in Hz */
+  write64le(op.packet+20, (ogg_int64_t)header.rate); /* granulerate numerator */
+  write64le(op.packet+28, (ogg_int64_t)1); /* granulerate denominator */
+  write64le(op.packet+36, (ogg_int64_t)Int64_val(start)); /* start granule */
+  write32le(op.packet+44, 3); /* preroll, for speex its 3 */
+  *(op.packet+48) = 0; /* granule shift, always 0 for speex */
+  memcpy (op.packet+FISBONE_SIZE, String_val(content), caml_string_length(content));
+
+  op.b_o_s = 0;
+  op.e_o_s = 0;
+  op.bytes = len;
+
+  packet = value_of_packet(&op);
+  free(op.packet);
+  CAMLreturn(packet);
+}
+

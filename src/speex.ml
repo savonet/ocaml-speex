@@ -458,3 +458,21 @@ struct
 
   end
 end
+
+module Skeleton = 
+struct
+
+  external fisbone : nativeint -> Header.t -> Int64.t -> string -> Ogg.Stream.packet = "ocaml_speex_skeleton_fisbone"
+
+  let fisbone ?(start_granule=Int64.zero)
+              ?(headers=["Content-type","audio/speex"])
+              ~serialno ~header () =
+    let concat s (h,v) =
+      Printf.sprintf "%s%s: %s\r\n" s h v
+    in
+    let s =
+      List.fold_left concat "" headers
+    in
+    fisbone serialno header start_granule s  
+
+end
