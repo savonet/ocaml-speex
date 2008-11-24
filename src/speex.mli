@@ -19,7 +19,7 @@
  *)
 
 (**
-  * Functions for decoding speex files using libspeex.
+  * Functions for manipulating speex audio data using libspeex.
   *
   * @author Romain Beauxis
   *)
@@ -89,7 +89,8 @@ type control =
 
 module Header :
 sig
- 
+
+  (** Type for speex header. *) 
   type t = 
     { id:                     string;
       version:                string;
@@ -110,17 +111,27 @@ sig
   val header_string_length : int
   val header_version_length : int
 
+  (** Initiate a new speex header. *)
   val init :
     ?frames_per_packet:int ->
     ?mode:mode ->
     ?vbr:bool -> nb_channels:int -> rate:int -> unit -> t 
 
+  (** [encode_header_packetout header metadata]: output ogg packets containing the header. 
+    * First packet contains speex audio codec settings, second the metadata. *)
   val encode_header_packetout : t -> (string*string) list -> Ogg.Stream.packet*Ogg.Stream.packet
 
+  (** Output ogg packets containing the header and put them into the given stream. *)
   val encode_header : t -> (string*string) list -> Ogg.Stream.t -> unit
 
+  (** Decode the speex header contained in the given packet. 
+    * 
+    * Raises [Invalid_argument] if the packet does not contain speex audio codec data. *)
   val header_of_packet : Ogg.Stream.packet -> t
 
+  (** Decode the metadata contained in the given packet. 
+    * 
+    * Raises [Invalid_argument] if the packet does not contain speex metadata. *)
   val comments_of_packet : Ogg.Stream.packet -> string*((string*string) list)
 
 end
@@ -128,22 +139,34 @@ end
 module Encoder :
 sig
 
+  (** Opaque type for the speex encoder. *)
   type t
 
+  (** Initiate a new encoder. *)
   val init : mode -> int -> t
 
+  (** Get a parameter. *)
   val get : t -> control -> int
 
+  (** Set a parameter. *)
   val set : t -> control -> int -> unit
 
+  (** [encode_page encoder stream f]: calls [f] to get audio data and encode it until a page is ready. 
+    *
+    * Known issue: float expected values seem not to be in [-1..1] but in
+    * [-32768..32767] which does not seem to be correct. *)
   val encode_page : t -> Ogg.Stream.t -> (unit -> float array) -> Ogg.Page.t
 
+  (** Same as [encode_page] except that it encodes stereo data into mono. *)
   val encode_page_stereo : t -> Ogg.Stream.t -> (unit -> float array array) -> Ogg.Page.t
 
+  (** Same as [encode_page] but using integers. *)
   val encode_page_int : t -> Ogg.Stream.t -> (unit -> int array) -> Ogg.Page.t
 
+  (** Same as [encode_page_stereo] but using integers. *)
   val encode_page_int_stereo : t -> Ogg.Stream.t -> (unit -> int array array) -> Ogg.Page.t
 
+  (** Set the end of stream for this stream. *)
   val eos : t -> Ogg.Stream.t -> unit 
 
 end
@@ -151,28 +174,40 @@ end
 module Decoder :
 sig
 
+  (** Opaque type for the speex decoder. *)
   type t
-  
+ 
+  (** Initiate a new decoder. *) 
   val init : mode -> t
 
+  (** Get a setting. *)
   val get : t -> control -> int
 
+  (** Set a setting. *)
   val set : t -> control -> int -> unit
 
+  (** Decode data. *)
   val decode : t -> Ogg.Stream.t -> float array list
 
+  (** Decode stereo data. *)
   val decode_stereo : t -> Ogg.Stream.t -> float array array list
 
+  (** Decode data, passing them to the given feed. *)
   val decode_feed : t -> Ogg.Stream.t -> (float array -> unit) -> unit
 
+  (** Decode stereo data, passing them to the given feed. *)
   val decode_feed_stereo : t -> Ogg.Stream.t -> (float array array -> unit) -> unit
 
+  (** Same as [decode] but with integers. *)
   val decode_int : t -> Ogg.Stream.t -> int array list
 
+  (** Same as [decode_stereo] but with integers. *)
   val decode_int_stereo : t -> Ogg.Stream.t -> int array array list
 
+  (** Same as [decode_feed] but with integers. *)
   val decode_int_feed : t -> Ogg.Stream.t -> (int array -> unit) -> unit
 
+  (** Same as [decode_feed_stereo] but with integers. *)
   val decode_int_feed_stereo : t -> Ogg.Stream.t -> (int array array -> unit) -> unit
 
 end
@@ -180,39 +215,59 @@ end
 module Wrapper : 
 sig
 
+  (** High level wrappers for speex. *)
+
   module Decoder :
   sig
-    
+   
+    (** High level wrapper to easily decode speex files. *)
+ 
     exception Not_speex
 
+    (** Opaque type for the decoder. *)
     type t
 
+    (** Open the passed [Ogg.Sync] as a new speex stream. *)
     val open_sync : Ogg.Sync.t -> t
 
+    (** Open the passed file name as a new speex stream. *)
     val open_file : string -> t*Unix.file_descr
 
+    (** Open the passed feed as a new speex stream. *)
     val open_feed : (int -> string*int) -> t
 
+    (** Get the serial of the stream currently being decoded.
+      * This value may change if the stream contains sequentialized ogg streams. *)
     val serial : t -> nativeint
 
+    (** Get current comments. *)
     val comments : t -> (string*string) list
 
+    (** Get current header. *)
     val header : t -> Header.t
 
+    (** Decode audio data. *)
     val decode : t -> float array list
 
+    (** Decode stereo audio data. *)
     val decode_stereo : t -> float array array list
 
+    (** Decode audio data, passing it to a feed. *)
     val decode_feed : t -> (float array -> unit) -> unit
 
+    (** Same as [decode_feed] but with stereo data. *)
     val decode_feed_stereo : t -> (float array array -> unit) -> unit
 
+    (** Same as [decode] but with integers. *)
     val decode_int : t -> int array list
 
+    (** Same as [decode_stereo] but with integers. *)
     val decode_int_stereo : t -> int array array list
 
+    (** Same as [decode_feed] but with integers. *)
     val decode_int_feed : t -> (int array -> unit) -> unit
 
+    (** Same as [decode_int_feed_stereo] but with integers. *)
     val decode_int_feed_stereo : t -> (int array array -> unit) -> unit
 
   end
