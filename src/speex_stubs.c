@@ -79,7 +79,7 @@ void comment_init(char **comments, int* length, char *vendor_string)
   int len=4+vendor_length+4;
   char *p=(char*)malloc(len);
   if(p==NULL)
-    caml_failwith("malloc");
+    caml_raise_out_of_memory();
   writeint(p, 0, vendor_length);
   memcpy(p+4, vendor_string, vendor_length);
   writeint(p, 4+vendor_length, user_comment_list_length);
@@ -325,11 +325,11 @@ CAMLprim value ocaml_speex_enc_init(value m, value fpp)
   CAMLlocal1(ret);
   cenc_t *cen = malloc(sizeof(cenc_t));
   if (cen == NULL)
-    caml_failwith("malloc");
+    caml_raise_out_of_memory();
   SpeexMode *mode = Mode_val(m);
   void *enc = speex_encoder_init(mode);
   if (enc == NULL)
-    caml_failwith("malloc");
+    caml_raise_out_of_memory();
   speex_bits_init(&cen->bits);
   cen->enc  = enc;
   cen->position = 0;
@@ -380,12 +380,12 @@ CAMLprim value ocaml_speex_encode_page(value e_state, value o_chans, value o_str
   int i;
   float *data = malloc(sizeof(float)*frame_size*chans);
   if (data == NULL)
-    caml_failwith("malloc");
+    caml_raise_out_of_memory();
   char *cbits = malloc(sizeof(char)*frame_size*chans);
   if (cbits == NULL)
   {
     free(data);
-    caml_failwith("malloc");
+    caml_raise_out_of_memory();
   }
   int nbBytes;
 
@@ -470,12 +470,12 @@ CAMLprim value ocaml_speex_encode_page_int(value e_state, value o_chans, value o
   int i;
   spx_int16_t *data = malloc(sizeof(spx_int16_t)*frame_size*chans);
   if (data == NULL)
-    caml_failwith("malloc");
+    caml_raise_out_of_memory();
   char *cbits = malloc(sizeof(char)*frame_size*chans);
   if (cbits == NULL)
   {
     free(data);
-    caml_failwith("malloc");
+    caml_raise_out_of_memory();
   }
   int nbBytes;
 
@@ -603,13 +603,13 @@ CAMLprim value ocaml_speex_dec_init(value m)
   SpeexMode *mode = Mode_val(m);
   void *dec = speex_decoder_init(mode);
   if (dec == NULL)
-    caml_failwith("malloc");
+    caml_raise_out_of_memory();
   SpeexStereoState *stereo = speex_stereo_state_init();
   if (stereo == NULL)
-    caml_failwith("malloc");
+    caml_raise_out_of_memory();
   cdec_t *cdec = malloc(sizeof(cdec_t));
   if (cdec == NULL)
-    caml_failwith("malloc");
+    caml_raise_out_of_memory();
   cdec->dec = dec;
   speex_bits_init(&cdec->bits);
   cdec->stereo = stereo;
@@ -663,7 +663,7 @@ CAMLprim value ocaml_speex_decoder_decode(value e, value o_chans, value s, value
   speex_decoder_ctl(dec,SPEEX_GET_FRAME_SIZE,&frame_size);
   float *out = malloc(sizeof(float)*frame_size*chans);
   if (out == NULL)
-    caml_failwith("malloc");
+    caml_raise_out_of_memory();
   int i;
   int n;
 
@@ -717,7 +717,7 @@ CAMLprim value ocaml_speex_decoder_decode_int(value e, value o_chans, value s, v
   speex_decoder_ctl(dec,SPEEX_GET_FRAME_SIZE,&frame_size);
   spx_int16_t *out = malloc(sizeof(spx_int16_t)*frame_size*chans);
   if (out == NULL)
-    caml_failwith("malloc");
+    caml_raise_out_of_memory();
   int i;
   int n;
 
@@ -800,7 +800,7 @@ CAMLprim value ocaml_speex_skeleton_fisbone(value serial, value _header, value s
   memset (&op, 0, sizeof (op));
   op.packet = malloc(len);
   if (op.packet == NULL)
-    caml_failwith("malloc");
+    caml_raise_out_of_memory();
 
   memset (op.packet, 0, len);
   /* it will be the fisbone packet for the speex audio */
