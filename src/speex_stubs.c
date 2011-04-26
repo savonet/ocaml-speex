@@ -671,7 +671,10 @@ CAMLprim value ocaml_speex_decoder_decode(value e, value o_chans, value s, value
     if (ogg_stream_packetout(os,&op) <= 0)
     {
       free(out);
-      caml_raise_constant(*caml_named_value("ogg_exn_not_enough_data"));
+      if (ret == 0)
+        caml_raise_constant(*caml_named_value("ogg_exn_not_enough_data"));
+      else
+        caml_raise_constant(*caml_named_value("ogg_exn_out_of_sync"));
     }
     
     /* Copy Ogg packet to Speex bitstream */
@@ -726,7 +729,10 @@ CAMLprim value ocaml_speex_decoder_decode_int(value e, value o_chans, value s, v
     if (ogg_stream_packetout(os,&op) <= 0)
     {
       free(out);
-      caml_raise_constant(*caml_named_value("ogg_exn_not_enough_data"));
+      if (ret == 0)
+        caml_raise_constant(*caml_named_value("ogg_exn_not_enough_data"));
+      else
+        caml_raise_constant(*caml_named_value("ogg_exn_out_of_sync"));
     }
     
     /* Copy Ogg packet to Speex bitstream */
