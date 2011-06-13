@@ -25,7 +25,7 @@ DVIPS = @DVIPS@
 PS2PDF = @PS2PDF@
 OCAMLLIBPATH = @CAMLLIBPATH@
 
-SOURCES = speex_stubs.c speex.ml speex.mli
+SOURCES = speex_stubs.c speex.ml speex.mli ogg_demuxer_speex_decoder.mli ogg_demuxer_speex_decoder.ml
 RESULT = speex
 OCAMLDOCFLAGS = -stars
 LIBINSTALL_FILES = $(wildcard *.mli *.cmi *.cma *.cmxa *.cmx *.a *.so)
