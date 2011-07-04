@@ -1,3 +1,9 @@
+0.2.0 (04-07-2011)
+=====
+* Added decoding module for the new Ogg_demuxer module
+* Implement new Out_of_sync exception
+* Efficient seeking support
+
 0.1.2 (14-10-2009)
 =====
 * Added support for --enable-debugging configure option
