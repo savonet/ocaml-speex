@@ -19,28 +19,7 @@ AC_PROG_CC()
 AC_CHECK_TOOL([AR],[ar],no)
 AC_SUBST(AR)
 PKG_PROG_PKG_CONFIG()
-#PKG_CHECK_MODULES(speex, speex, , [AC_MSG_ERROR(speex not found.)])
-
-# PKG_CHECK_MODULES loses when you need --libs-only-[lL]
-if ! $PKG_CONFIG --exists speex; then
-        AC_MSG_ERROR([speex not found])
-fi
-speex_CFLAGS=`$PKG_CONFIG --cflags speex`
-AC_SUBST([speex_CFLAGS])
-speex_LIBS=`$PKG_CONFIG --libs-only-l speex`
-AC_SUBST([speex_LIBS])
-speex_LDFLAGS=`$PKG_CONFIG --libs-only-L speex`
-AC_SUBST([speex_LDFLAGS])
-
-if ! $PKG_CONFIG --exists ogg; then
-        AC_MSG_ERROR([libogg not found.])
-fi
-ogg_LDFLAGS=`$PKG_CONFIG --libs-only-L ogg`
-AC_SUBST([ogg_LDFLAGS])
-ogg_CFLAGS=`$PKG_CONFIG --cflags ogg`
-AC_SUBST([ogg_CFLAGS])
-ogg_LIBS=`$PKG_CONFIG --libs-only-l ogg`
-AC_SUBST([ogg_LIBS])
+PKG_CONFIG_CHECK_MODULE([speex])
 
 AC_ARG_WITH([ogg-dir],AC_HELP_STRING([--with-ogg-dir=path],
         [use "path" as the location of ocaml-ogg (autodetected by default)]))
