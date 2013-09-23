@@ -223,7 +223,7 @@ struct
   let set x q v = 
     set x (int_of_control q) v
 
-  external encode_page_main : t -> int -> Ogg.Stream.t -> (unit -> float array) -> Ogg.Page.t = "ocaml_speex_encode_page"
+  external encode_page_main : t -> int -> Ogg.Stream.stream -> (unit -> float array) -> Ogg.Page.t = "ocaml_speex_encode_page"
 
   let encode_page e s f = encode_page_main e 1 s f
 
@@ -244,7 +244,7 @@ struct
     let f () = merge (f ()) in
      encode_page_main e 2 s f 
 
-  external encode_page_int_main : t -> int -> Ogg.Stream.t -> (unit -> int array) -> Ogg.Page.t = "ocaml_speex_encode_page_int"
+  external encode_page_int_main : t -> int -> Ogg.Stream.stream -> (unit -> int array) -> Ogg.Page.t = "ocaml_speex_encode_page_int"
 
   let encode_page_int e s f = encode_page_int_main e 1 s f
 
@@ -252,7 +252,7 @@ struct
     let f () = merge (f ()) in
     encode_page_int_main e 2 s f 
 
-  external eos : t -> Ogg.Stream.t -> unit = "ocaml_speex_encoder_eos" 
+  external eos : t -> Ogg.Stream.stream -> unit = "ocaml_speex_encoder_eos" 
 
 end
 
@@ -285,7 +285,7 @@ struct
     done;
     ret
 
-  external decode_feed : t -> int -> Ogg.Stream.t -> (float array -> unit) -> unit = "ocaml_speex_decoder_decode"
+  external decode_feed : t -> int -> Ogg.Stream.stream -> (float array -> unit) -> unit = "ocaml_speex_decoder_decode"
 
   let decode_gen e s chan func split = 
     let l = ref [] in
@@ -313,7 +313,7 @@ struct
   let decode_feed e s feed =
     decode_feed e 1 s feed
 
-  external decode_int_feed : t -> int -> Ogg.Stream.t -> (int array -> unit) -> unit = "ocaml_speex_decoder_decode_int"
+  external decode_int_feed : t -> int -> Ogg.Stream.stream -> (int array -> unit) -> unit = "ocaml_speex_decoder_decode_int"
 
   let decode_int e s = decode_gen e s 2 decode_int_feed (fun x -> x)
 
@@ -337,7 +337,7 @@ struct
     exception Not_speex
     exception Internal
 
-    type t = (Decoder.t*Ogg.Stream.t*Ogg.Sync.t*nativeint*int*(string*(string*string) list)*Header.t) ref
+    type t = (Decoder.t*Ogg.Stream.stream*Ogg.Sync.t*nativeint*int*(string*(string*string) list)*Header.t) ref
 
     let open_sync sync = 
        (** Test wether the stream contains speex data *)

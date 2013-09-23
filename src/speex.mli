@@ -123,7 +123,7 @@ sig
   val encode_header_packetout : t -> (string*string) list -> Ogg.Stream.packet*Ogg.Stream.packet
 
   (** Output ogg packets containing the header and put them into the given stream. *)
-  val encode_header : t -> (string*string) list -> Ogg.Stream.t -> unit
+  val encode_header : t -> (string*string) list -> Ogg.Stream.stream -> unit
 
   (** Decode the speex header contained in the given packet. 
     * 
@@ -156,19 +156,19 @@ sig
     *
     * Known issue: float expected values seem not to be in [-1..1] but in
     * [-32768..32767] which does not seem to be correct. *)
-  val encode_page : t -> Ogg.Stream.t -> (unit -> float array) -> Ogg.Page.t
+  val encode_page : t -> Ogg.Stream.stream -> (unit -> float array) -> Ogg.Page.t
 
   (** Same as [encode_page] except that it encodes stereo data into mono. *)
-  val encode_page_stereo : t -> Ogg.Stream.t -> (unit -> float array array) -> Ogg.Page.t
+  val encode_page_stereo : t -> Ogg.Stream.stream -> (unit -> float array array) -> Ogg.Page.t
 
   (** Same as [encode_page] but using integers. *)
-  val encode_page_int : t -> Ogg.Stream.t -> (unit -> int array) -> Ogg.Page.t
+  val encode_page_int : t -> Ogg.Stream.stream -> (unit -> int array) -> Ogg.Page.t
 
   (** Same as [encode_page_stereo] but using integers. *)
-  val encode_page_int_stereo : t -> Ogg.Stream.t -> (unit -> int array array) -> Ogg.Page.t
+  val encode_page_int_stereo : t -> Ogg.Stream.stream -> (unit -> int array array) -> Ogg.Page.t
 
   (** Set the end of stream for this stream. *)
-  val eos : t -> Ogg.Stream.t -> unit 
+  val eos : t -> Ogg.Stream.stream -> unit 
 
 end
 
@@ -188,28 +188,28 @@ sig
   val set : t -> control -> int -> unit
 
   (** Decode data. *)
-  val decode : t -> Ogg.Stream.t -> float array list
+  val decode : t -> Ogg.Stream.stream -> float array list
 
   (** Decode stereo data. *)
-  val decode_stereo : t -> Ogg.Stream.t -> float array array list
+  val decode_stereo : t -> Ogg.Stream.stream -> float array array list
 
   (** Decode data, passing them to the given feed. *)
-  val decode_feed : t -> Ogg.Stream.t -> (float array -> unit) -> unit
+  val decode_feed : t -> Ogg.Stream.stream -> (float array -> unit) -> unit
 
   (** Decode stereo data, passing them to the given feed. *)
-  val decode_feed_stereo : t -> Ogg.Stream.t -> (float array array -> unit) -> unit
+  val decode_feed_stereo : t -> Ogg.Stream.stream -> (float array array -> unit) -> unit
 
   (** Same as [decode] but with integers. *)
-  val decode_int : t -> Ogg.Stream.t -> int array list
+  val decode_int : t -> Ogg.Stream.stream -> int array list
 
   (** Same as [decode_stereo] but with integers. *)
-  val decode_int_stereo : t -> Ogg.Stream.t -> int array array list
+  val decode_int_stereo : t -> Ogg.Stream.stream -> int array array list
 
   (** Same as [decode_feed] but with integers. *)
-  val decode_int_feed : t -> Ogg.Stream.t -> (int array -> unit) -> unit
+  val decode_int_feed : t -> Ogg.Stream.stream -> (int array -> unit) -> unit
 
   (** Same as [decode_feed_stereo] but with integers. *)
-  val decode_int_feed_stereo : t -> Ogg.Stream.t -> (int array array -> unit) -> unit
+  val decode_int_feed_stereo : t -> Ogg.Stream.stream -> (int array array -> unit) -> unit
 
 end
 

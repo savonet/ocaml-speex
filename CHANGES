@@ -1,3 +1,8 @@
+0.2.1 ()
+=====
+* Changed types to match new ocaml-ogg's API.
+  Should be fully backward compatible.
+
 0.2.0 (04-07-2011)
 =====
 * Added decoding module for the new Ogg_demuxer module
