@@ -281,7 +281,11 @@ CAMLprim value caml_speex_header_of_packet(value packet)
   CAMLparam1(packet);
   CAMLlocal1(ret);
   ogg_packet *op = Packet_val(packet);
+
+  caml_enter_blocking_section();
   SpeexHeader *header = speex_packet_to_header((char*)op->packet,op->bytes); 
+  caml_leave_blocking_section();
+
   if (header == NULL) 
     caml_invalid_argument("not a speex header");  
   ret = value_of_header(header);
@@ -678,7 +682,9 @@ CAMLprim value ocaml_speex_decoder_decode(value e, value o_chans, value s, value
     }
     
     /* Copy Ogg packet to Speex bitstream */
+    caml_enter_blocking_section();
     speex_bits_read_from(&cdec->bits, (char*)op.packet, op.bytes);
+    caml_leave_blocking_section();
 
     while (1) {
       caml_enter_blocking_section();

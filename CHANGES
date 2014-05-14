@@ -2,6 +2,9 @@
 =====
 * Changed types to match new ocaml-ogg's API.
   Should be fully backward compatible.
+* Wrapped more speex functions around enter/leave
+  blocking sections to avoid deadlock when speex
+  writes to stderr
 
 0.2.0 (04-07-2011)
 =====
