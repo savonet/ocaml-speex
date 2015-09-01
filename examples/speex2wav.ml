@@ -125,7 +125,7 @@ let _ =
               List.iter put frames;
             done
           with
-            | End_of_stream -> close_out oc
+            | Ogg.End_of_stream -> close_out oc
       );
       Printf.printf "Decoding finished, writing WAV..\n";
       Unix.close fd;
@@ -148,7 +148,7 @@ let _ =
         output_int oc datalen;
         (
           let buflen = 256 * 1024 in
-          let buf = String.create buflen in
+          let buf = Bytes.create buflen in
           let r = ref 1 in
           let pos = ref 0 in
             while !r <> 0

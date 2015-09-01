@@ -1,8 +1,8 @@
 SOURCES = wav2speex.ml
 RESULT = wav2speex
 INCDIRS = ../src @OCAMLOGG_INC@
-OCAMLC = /usr/bin/ocamlc -thread
-OCAMLOPT = /usr/bin/ocamlopt -thread
+OCAMLC = ocamlfind ocamlc -thread
+OCAMLOPT = ocamlfind ocamlopt -thread
 LIBS = unix ogg speex
 
 all: nc

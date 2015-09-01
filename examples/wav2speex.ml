@@ -32,7 +32,7 @@ let src = ref ""
 let dst = ref ""
 
 let input_string chan len =
-  let ans = String.create len in
+  let ans = Bytes.create len in
     really_input chan ans 0 len ;
     ans
 
@@ -113,7 +113,7 @@ let _ =
     let _ = input_int ic in (* datalen *)
     let fos buf =
       let len = String.length buf / (2 * channels) in
-      let ans = Array.init channels (fun _ -> Array.create len 0) in
+      let ans = Array.init channels (fun _ -> Array.make len 0) in
         for i = 0 to len - 1 do
           for c = 0 to channels - 1 do
             let n =
@@ -148,7 +148,18 @@ let _ =
                              ~frames_per_packet:(!fpp) 
                              () in
     Header.encode_header header [] os;
-    output_string oc (Ogg.Stream.flush os);
+    let s_o_f (h,b) = h ^ b in
+    let flush s =
+      let rec f v =
+        try
+          let v = v ^ (s_o_f (Ogg.Stream.flush_page s)) in
+          f v
+        with
+          | Ogg.Not_enough_data -> v
+      in
+      f ""
+    in
+    output_string oc (flush os);
     let start = Unix.time () in
     let smode = 
       match !mode with
@@ -164,7 +175,7 @@ let _ =
         channels infreq smode (string_of_bool !vbr);
         begin try while true do
           let buflen = 2*fsize*channels in
-          let buf = String.create buflen in
+          let buf = Bytes.create buflen in
           let feed () =
             really_input ic buf 0 buflen;
             let fbuf = fos buf in
@@ -197,7 +208,7 @@ let _ =
         done;
         with End_of_file -> () end;
         Encoder.eos enc os;
-        output_string oc (Ogg.Stream.flush os);
+        output_string oc (flush os);
         close_in ic;
         close_out oc;
         Printf.printf "Finished in %.0f seconds.\n" ((Unix.time ())-.start);
