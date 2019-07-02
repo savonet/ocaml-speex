@@ -34,7 +34,7 @@ let dst = ref ""
 let input_string chan len =
   let ans = Bytes.create len in
     really_input chan ans 0 len ;
-    ans
+    Bytes.to_string ans
 
 let input_int chan =
   let buf = input_string chan 4 in
@@ -178,6 +178,7 @@ let _ =
           let buf = Bytes.create buflen in
           let feed () =
             really_input ic buf 0 buflen;
+            let buf = Bytes.to_string buf in
             let fbuf = fos buf in
             assert(Array.length (fbuf.(0)) = fsize);
             fbuf
