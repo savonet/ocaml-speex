@@ -1,10 +1,11 @@
 opam-version: "2.0"
-version: "dev"
+name: "speex"
+version: "0.2.1"
 maintainer: "Romain Beauxis <toots@rastageeks.org>"
 authors: "The Savonet Team <savonet-users@lists.sourceforge.net>"
 homepage: "https://github.com/savonet/ocaml-speex"
 build: [
-  ["./bootstrap"]
+  ["./bootstrap"] {pinned}
   ["./configure" "--prefix" prefix] {os != "macos"}
   [
     "./configure"
@@ -14,13 +15,17 @@ build: [
     "--prefix"
     prefix
   ] {os = "macos"}
+  [make "clean"] {pinned}
   [make]
 ]
 install: [
   [make "install"]
 ]
-remove: ["ocamlfind" "remove" "speex"]
-depends: ["ocaml" "ocamlfind" "ogg"]
+depends: [
+  "ocaml"
+  "ocamlfind" {build}
+  "ogg"
+]
 depexts: [
   ["speex-dev"] {os-distribution = "alpine"}
   ["speex-devel"] {os-distribution = "centos"}
@@ -34,9 +39,3 @@ bug-reports: "https://github.com/savonet/ocaml-speex/issues"
 dev-repo: "git+https://github.com/savonet/ocaml-speex.git"
 synopsis:
   "Bindings for the speex library to decode audio files in speex format"
-flags: light-uninstall
-url {
-  src:
-    "https://github.com/savonet/ocaml-speex/releases/download/0.2.1/ocaml-speex-0.2.1.tar.gz"
-  checksum: "md5=68e3596edc35ce7c4fa010e44abc8770"
-}
