@@ -228,6 +228,9 @@ sig
     (** Opaque type for the decoder. *)
     type t
 
+    (** Type for data read. Same signature as [Unix.read]. *)
+    type read = bytes -> int -> int -> int
+
     (** Open the passed [Ogg.Sync] as a new speex stream. *)
     val open_sync : Ogg.Sync.t -> t
 
@@ -235,7 +238,7 @@ sig
     val open_file : string -> t*Unix.file_descr
 
     (** Open the passed feed as a new speex stream. *)
-    val open_feed : (int -> string*int) -> t
+    val open_feed : read -> t
 
     (** Get the serial of the stream currently being decoded.
       * This value may change if the stream contains sequentialized ogg streams. *)
