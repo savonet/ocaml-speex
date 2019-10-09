@@ -339,6 +339,8 @@ struct
 
     type t = (Decoder.t*Ogg.Stream.stream*Ogg.Sync.t*nativeint*int*(string*(string*string) list)*Header.t) ref
 
+    type read = bytes -> int -> int -> int
+
     let open_sync sync = 
        (** Test wether the stream contains speex data *)
        let test_speex () =
