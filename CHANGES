@@ -2,6 +2,10 @@
 =====
 * Switch to Unix.read style API.
 
+0.2.2 (16-10-2020)
+=====
+* Fix Speex header notification spam.
+
 0.2.1 (03-08-2015)
 =====
 * Changed types to match new ocaml-ogg's API.
