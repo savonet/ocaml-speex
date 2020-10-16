@@ -21,4 +21,4 @@
 (** Speex decoder for the [Ogg_demuxer] module. *)
 
 (** Register the decoder. *)
-val register  : unit -> unit
+val register : unit -> unit
