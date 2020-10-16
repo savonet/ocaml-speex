@@ -25,14 +25,8 @@ depends: [
   "ocaml"
   "ocamlfind" {build}
   "ogg"
-]
-depexts: [
-  ["speex-dev"] {os-distribution = "alpine"}
-  ["speex-devel"] {os-distribution = "centos"}
-  ["speex-devel"] {os-distribution = "fedora"}
-  ["speex-devel"] {os-family = "suse"}
-  ["libspeex-dev"] {os-family = "debian"}
-  ["speex"] {os = "macos" & os-distribution = "homebrew"}
+  "conf-libflac" {build}
+  "conf-pkg-config" {build}
 ]
 bug-reports: "https://github.com/savonet/ocaml-speex/issues"
 dev-repo: "git+https://github.com/savonet/ocaml-speex.git"
