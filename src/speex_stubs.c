@@ -282,6 +282,9 @@ CAMLprim value caml_speex_header_of_packet(value packet)
   CAMLlocal1(ret);
   ogg_packet *op = Packet_val(packet);
 
+   if (op->bytes < sizeof(SpeexHeader))
+      caml_invalid_argument("not a speex header");
+
   caml_enter_blocking_section();
   SpeexHeader *header = speex_packet_to_header((char*)op->packet,op->bytes); 
   caml_leave_blocking_section();
