@@ -25,7 +25,7 @@ depends: [
   "ocaml"
   "ocamlfind" {build}
   "ogg"
-  "conf-libflac" {build}
+  "conf-libspeex" {build}
   "conf-pkg-config" {build}
 ]
 bug-reports: "https://github.com/savonet/ocaml-speex/issues"
