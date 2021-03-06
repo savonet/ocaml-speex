@@ -37,6 +37,10 @@
 
 #include <string.h>
 
+#ifndef Bytes_val
+#define Bytes_val String_val
+#endif
+
 /* Comment API */
 
 /* This is stolen from speexenc.c
@@ -124,7 +128,7 @@ CAMLprim value caml_speex_comments_of_packet(value o_packet) {
   if (len < 0 || c + len > end)
     caml_failwith("Invalid comments raw data");
   tmp = caml_alloc_string(len);
-  memcpy(String_val(tmp), c, len);
+  memcpy(Bytes_val(tmp), c, len);
   c += len;
   if (c + 4 > end)
     caml_failwith("Invalid comments raw data");
@@ -140,7 +144,7 @@ CAMLprim value caml_speex_comments_of_packet(value o_packet) {
     if (len < 0 || c + len > end)
       caml_failwith("Invalid comments raw data");
     tmp = caml_alloc_string(len);
-    memcpy(String_val(tmp), c, len);
+    memcpy(Bytes_val(tmp), c, len);
     Store_field(ret, i + 1, tmp);
     c += len;
   }
@@ -196,10 +200,10 @@ CAMLprim value value_of_header(SpeexHeader *header) {
   ret = caml_alloc_tuple(13);
   int i = 0;
   tmp = caml_alloc_string(SPEEX_HEADER_STRING_LENGTH);
-  memcpy(String_val(tmp), header->speex_string, SPEEX_HEADER_STRING_LENGTH);
+  memcpy(Bytes_val(tmp), header->speex_string, SPEEX_HEADER_STRING_LENGTH);
   Store_field(ret, i++, tmp);
   tmp = caml_alloc_string(SPEEX_HEADER_VERSION_LENGTH);
-  memcpy(String_val(tmp), header->speex_version, SPEEX_HEADER_VERSION_LENGTH);
+  memcpy(Bytes_val(tmp), header->speex_version, SPEEX_HEADER_VERSION_LENGTH);
   Store_field(ret, i++, tmp);
 #define svh(v) Store_field(ret, i++, Val_int(header->v));
   svh(speex_version_id);
@@ -258,7 +262,8 @@ CAMLprim value caml_speex_encode_header(value v, value o_comments) {
   /* Comment Packet */
   comment_init(&comments, &comments_length, vendor_string);
   for (i = 0; i < Wosize_val(o_comments); i++)
-    comment_add(&comments, &comments_length, String_val(Field(o_comments, i)));
+    comment_add(&comments, &comments_length,
+                (char *)Bytes_val(Field(o_comments, i)));
 
   op.packet = (unsigned char *)comments;
   op.bytes = comments_length;
@@ -390,13 +395,12 @@ CAMLprim value ocaml_speex_encode_page(value e_state, value o_chans,
 
     /* Read and process more audio. */
     v = caml_callback_exn(feed, Val_unit);
-    if
-      Is_exception_result(v) {
-        free(data);
-        free(cbits);
-        cenc->position = state + 1;
-        caml_raise(Extract_exception(v));
-      }
+    if Is_exception_result (v) {
+      free(data);
+      free(cbits);
+      cenc->position = state + 1;
+      caml_raise(Extract_exception(v));
+    }
 
     len = Wosize_val(v) / Double_wosize;
     if (len != frame_size * chans) {
@@ -476,13 +480,12 @@ CAMLprim value ocaml_speex_encode_page_int(value e_state, value o_chans,
 
     /* Read and process more audio. */
     v = caml_callback_exn(feed, Val_unit);
-    if
-      Is_exception_result(v) {
-        free(data);
-        free(cbits);
-        cenc->position = state + 1;
-        caml_raise(Extract_exception(v));
-      }
+    if Is_exception_result (v) {
+      free(data);
+      free(cbits);
+      cenc->position = state + 1;
+      caml_raise(Extract_exception(v));
+    }
 
     len = Wosize_val(v);
     if (len != frame_size * chans) {
@@ -666,11 +669,10 @@ CAMLprim value ocaml_speex_decoder_decode(value e, value o_chans, value s,
       for (i = 0; i < frame_size * chans; i++)
         Store_double_field(ret, i, out[i]);
       v = caml_callback_exn(add, ret);
-      if
-        Is_exception_result(v) {
-          free(out);
-          caml_raise(Extract_exception(v));
-        }
+      if Is_exception_result (v) {
+        free(out);
+        caml_raise(Extract_exception(v));
+      }
     };
   }
 
@@ -722,11 +724,10 @@ CAMLprim value ocaml_speex_decoder_decode_int(value e, value o_chans, value s,
       for (i = 0; i < frame_size * chans; i++)
         Store_field(ret, i, Int_val(out[i]));
       v = caml_callback_exn(add, ret);
-      if
-        Is_exception_result(v) {
-          free(out);
-          caml_raise(Extract_exception(v));
-        }
+      if Is_exception_result (v) {
+        free(out);
+        caml_raise(Extract_exception(v));
+      }
     };
   }
 

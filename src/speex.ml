@@ -314,13 +314,13 @@ module Wrapper = struct
     exception Internal
 
     type t =
-      ( Decoder.t
+      (Decoder.t
       * Ogg.Stream.stream
       * Ogg.Sync.t
       * nativeint
       * int
       * (string * (string * string) list)
-      * Header.t )
+      * Header.t)
       ref
 
     type read = bytes -> int -> int -> int
@@ -406,7 +406,7 @@ module Wrapper = struct
               serial := nserial;
               os := nos;
               eos := false
-            with Not_found -> raise Internal );
+            with Not_found -> raise Internal);
           let page = Ogg.Sync.read sync in
           if Ogg.Stream.eos !os then eos := true;
           if Ogg.Page.serialno page = !serial then Ogg.Stream.put_page !os page
