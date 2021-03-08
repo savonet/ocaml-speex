@@ -1,7 +1,7 @@
-ocaml-opus
-==========
+ocaml-speex
+===========
 
-This package contains an OCaml interface for the `opus` library
+This package contains an OCaml interface for the `speex` library
 
 Please read the COPYING file before using this software.
 
@@ -9,7 +9,7 @@ Prerequisites:
 ==============
 
 - ocaml
-- libopus
+- libspeex
 - findlib
 - ocaml-ogg >= 0.7.0
 - dune >= 2.0
@@ -30,7 +30,7 @@ Installation:
 Via `opam`:
 
 ```
-$ opam install opus
+$ opam install speex
 ```
 
 Via `dune` (for developers):
