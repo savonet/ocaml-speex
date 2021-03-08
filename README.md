@@ -38,5 +38,4 @@ Via `dune` (for developers):
 $ dune install
 ```
 
-This should install the library file (using ocamlfind) in the
-appropriate place.
+This should install the library file in the appropriate place.
