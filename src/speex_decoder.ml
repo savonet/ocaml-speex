@@ -61,7 +61,7 @@ let decoder os =
   in
   let info () =
     let _, rate, chans, meta = init () in
-    ({ Ogg_demuxer.channels = chans; sample_rate = rate }, meta)
+    ({ Ogg_decoder.channels = chans; sample_rate = rate }, meta)
   in
   let decode feed =
     let dec, _, chans, _ = init () in
@@ -76,7 +76,7 @@ let decoder os =
         if chans = 2 then Speex.Decoder.decode_int_feed_stereo dec os feed
         else (
           let feed x = feed [| x |] in
-          Speex.Decoder.decode_int_feed dec os feed )
+          Speex.Decoder.decode_int_feed dec os feed)
       in
       decode dec !os feed
     with Ogg.Not_enough_data -> if !len = 0 then raise Ogg.Not_enough_data
@@ -86,13 +86,13 @@ let decoder os =
     let d, _, _, _ = init () in
     Speex.Decoder.set d Speex.SPEEX_RESET_STATE 0
   in
-  Ogg_demuxer.Audio
+  Ogg_decoder.Audio
     {
-      Ogg_demuxer.name = "speex";
+      Ogg_decoder.name = "speex";
       info;
       restart;
       decode;
       samples_of_granulepos = (fun x -> x);
     }
 
-let register () = Hashtbl.add Ogg_demuxer.ogg_decoders "speex" (check, decoder)
+let register () = Hashtbl.add Ogg_decoder.ogg_decoders "speex" (check, decoder)

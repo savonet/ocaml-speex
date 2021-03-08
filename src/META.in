@@ -1,6 +1,0 @@
-name="speex"
-version="@VERSION@"
-description="OCaml bindings for speex"
-requires="ogg @requires@"
-archive(byte)="speex.cma"
-archive(native)="speex.cmxa"
