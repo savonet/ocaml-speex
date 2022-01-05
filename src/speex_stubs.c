@@ -157,11 +157,18 @@ CAMLprim value caml_speex_comments_of_packet(value o_packet) {
 
 /* Mode API */
 
-#define Mode_val(v) ((SpeexMode *)v)
+#define Mode_val(v) (*((SpeexMode **)Data_abstract_val(v)))
+
+static inline value value_of_speex_mode(value v, const SpeexMode *s) {
+  v = caml_alloc(1, Abstract_tag);
+  *((const SpeexMode **)Data_abstract_val(v)) = s;
+  return v;
+}
 
 CAMLprim value caml_speex_get_mode(value i) {
   CAMLparam0();
-  CAMLreturn((value)speex_lib_get_mode(Int_val(i)));
+  CAMLlocal1(ret);
+  CAMLreturn(value_of_speex_mode(ret, speex_lib_get_mode(Int_val(i))));
 }
 
 /* Header API */

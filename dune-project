@@ -1,5 +1,5 @@
-(lang dune 2.0)
-(version 0.4.0)
+(lang dune 2.8)
+(version 0.4.1)
 (name speex)
 (source (github savonet/ocaml-speex))
 (license GPL-2.0)
@@ -7,6 +7,7 @@
 (maintainers "The Savonet Team <savonet-users@lists.sourceforge.net>")
 
 (generate_opam_files true)
+(use_standard_c_and_cxx_flags false)
 
 (package
  (name speex)
@@ -15,7 +16,7 @@
   conf-libogg
   conf-libspeex
   conf-pkg-config
-  (dune (>= 2.0))
+  dune
   dune-configurator
   (ogg (>= 0.7.0)))
 )
