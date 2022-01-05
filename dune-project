@@ -18,5 +18,6 @@
   conf-pkg-config
   dune
   dune-configurator
+  (ocaml (>= 4.07))
   (ogg (>= 0.7.0)))
 )
