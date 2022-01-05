@@ -25,12 +25,8 @@
   * @author Romain Beauxis
   *)
 
-let bufsize = 16 * 1024
 let src = ref ""
 let dst = ref ""
-
-open Unix
-open Speex
 
 let output_int chan n =
   output_char chan (char_of_int ((n lsr 0) land 0xff));
@@ -42,12 +38,11 @@ let output_short chan n =
   output_char chan (char_of_int ((n lsr 0) land 0xff));
   output_char chan (char_of_int ((n lsr 8) land 0xff))
 
-let usage = "usage: speex2wav [options] source destination"
-let float = ref false
+let usage = "usage: speex2wav source destination"
+let () = Speex_decoder.register ()
 
 let _ =
-  Arg.parse
-    [("--float", Arg.Bool (fun b -> float := b), "Use floats for encoding")]
+  Arg.parse []
     (let pnum = ref (-1) in
      fun s ->
        incr pnum;
@@ -61,25 +56,25 @@ let _ =
   if !src = "" || !dst = "" then (
     Printf.printf "%s\n" usage;
     exit 1);
-  let dec, fd = Speex.Wrapper.Decoder.open_file !src in
-  let header = Speex.Wrapper.Decoder.header dec in
-  let comments = Speex.Wrapper.Decoder.comments dec in
-  let chans = header.Header.nb_channels in
-  let rate = header.Header.rate in
-  let mode = header.Header.mode in
+  let dec, fd = Ogg_decoder.init_from_file !src in
+  let { Ogg_decoder.audio_track; _ } = Ogg_decoder.get_standard_tracks dec in
+  let audio_track =
+    match audio_track with
+      | None ->
+          Printf.eprintf "Error: no audio track\n";
+          exit 1
+      | Some audio_track -> audio_track
+  in
+  let { Ogg_decoder.channels; sample_rate }, (encoder, comments) =
+    Ogg_decoder.audio_info dec audio_track
+  in
+  Printf.printf "Encoder: %s\n" encoder;
   let print_comment (k, v) = Printf.printf "%s: %s\n" k v in
   Printf.printf "Comments:\n";
   List.iter print_comment comments;
   Printf.printf "\n";
-  let s_of_m x =
-    match x with
-      | Speex.Narrowband -> "narrowband"
-      | Speex.Wideband -> "wideband"
-      | Speex.Ultra_wideband -> "ultra_wideband"
-  in
-  Printf.printf
-    "Input file characteristics: speex codec, %d channels, %d Hz, %s mode\n"
-    chans rate (s_of_m mode);
+  Printf.printf "Input file characteristics: %d channels, %d Hz\n" channels
+    sample_rate;
   (* Using speex to decode the ogg. *)
   Printf.printf "\nDecoding...\n";
   flush_all ();
@@ -88,39 +83,22 @@ let _ =
   in
   (try
      while true do
-       (* Convert mono to two identical channels.. *)
-       let frames =
-         if !float then
-           if chans = 2 then
-             List.map
-               (Array.map (fun x -> Array.map int_of_float x))
-               (Wrapper.Decoder.decode_stereo dec)
-           else (
-             let f =
-               List.map (Array.map int_of_float) (Wrapper.Decoder.decode dec)
-             in
-             List.map (fun f -> Array.init 2 (fun _ -> f)) f)
-         else if chans = 2 then Wrapper.Decoder.decode_int_stereo dec
-         else (
-           let f = Wrapper.Decoder.decode_int dec in
-           List.map (fun f -> Array.init 2 (fun _ -> f)) f)
-       in
-       let put frame =
-         let s1 = frame.(0) in
-         let s2 = frame.(1) in
-         Array.iteri
-           (fun n _ ->
-             output_short oc s1.(n);
-             output_short oc s2.(n))
-           s1
-       in
-       List.iter put frames
+       Ogg_decoder.decode_audio dec audio_track (fun data ->
+           let s1 = data.(0) in
+           Array.iteri
+             (fun n _ ->
+               Array.iter
+                 (fun s ->
+                   let sample = int_of_float (s.(n) *. 32767.) in
+                   output_short oc sample)
+                 data)
+             s1)
      done
    with Ogg.End_of_stream -> close_out oc);
   Printf.printf "Decoding finished, writing WAV..\n";
   Unix.close fd;
   (* Do the wav stuff. *)
-  let datalen = (stat tmpdst).st_size in
+  let datalen = (Unix.stat tmpdst).st_size in
   let ic = open_in_bin tmpdst in
   let oc = open_out_bin !dst in
   output_string oc "RIFF";
@@ -132,9 +110,9 @@ let _ =
   (* WAVE_FORMAT_PCM *)
   output_short oc 2;
   (* channels *)
-  output_int oc rate;
+  output_int oc sample_rate;
   (* freq *)
-  output_int oc (rate * 2 * 2);
+  output_int oc (sample_rate * 2 * 2);
   (* bytes / s *)
   output_short oc (2 * 2);
   (* block alignment *)
