@@ -94,7 +94,7 @@ let _ =
                  data)
              s1)
      done
-   with Ogg.End_of_stream -> close_out oc);
+   with Ogg_decoder.End_of_stream -> close_out oc);
   Printf.printf "Decoding finished, writing WAV..\n";
   Unix.close fd;
   (* Do the wav stuff. *)

@@ -639,6 +639,7 @@ CAMLprim value ocaml_speex_decoder_decode(value e, value o_chans, value s,
   void *dec = cdec->dec;
   SpeexStereoState *stereo = cdec->stereo;
   int chans = Int_val(o_chans);
+  int err;
   ogg_packet op;
   int frame_size;
   speex_decoder_ctl(dec, SPEEX_GET_FRAME_SIZE, &frame_size);
@@ -649,9 +650,10 @@ CAMLprim value ocaml_speex_decoder_decode(value e, value o_chans, value s,
   int n;
 
   while (1) {
-    if (ogg_stream_packetout(os, &op) <= 0) {
+    err = ogg_stream_packetout(os, &op);
+    if (err <= 0) {
       free(out);
-      if (ret == 0)
+      if (err == 0)
         caml_raise_constant(*caml_named_value("ogg_exn_not_enough_data"));
       else
         caml_raise_constant(*caml_named_value("ogg_exn_out_of_sync"));
@@ -696,6 +698,7 @@ CAMLprim value ocaml_speex_decoder_decode_int(value e, value o_chans, value s,
   void *dec = cdec->dec;
   SpeexStereoState *stereo = cdec->stereo;
   int chans = Int_val(o_chans);
+  int err;
   ogg_packet op;
   int frame_size;
   speex_decoder_ctl(dec, SPEEX_GET_FRAME_SIZE, &frame_size);
@@ -706,9 +709,10 @@ CAMLprim value ocaml_speex_decoder_decode_int(value e, value o_chans, value s,
   int n;
 
   while (1) {
-    if (ogg_stream_packetout(os, &op) <= 0) {
+    err = ogg_stream_packetout(os, &op);
+    if (err <= 0) {
       free(out);
-      if (ret == 0)
+      if (err == 0)
         caml_raise_constant(*caml_named_value("ogg_exn_not_enough_data"));
       else
         caml_raise_constant(*caml_named_value("ogg_exn_out_of_sync"));
