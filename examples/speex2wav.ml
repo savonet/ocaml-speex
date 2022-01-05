@@ -22,7 +22,7 @@
   * A speex to wav converter using OCaml-speex.
   *
   * @author Samuel Mimram
-  * @author Romaib Beauxis
+  * @author Romain Beauxis
   *)
 
 let bufsize = 16 * 1024
