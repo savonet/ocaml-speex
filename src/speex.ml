@@ -244,8 +244,6 @@ module Encoder = struct
   let encode_page_int_stereo e s f =
     let f () = merge (f ()) in
     encode_page_int_main e 2 s f
-
-  external eos : t -> Ogg.Stream.stream -> unit = "ocaml_speex_encoder_eos"
 end
 
 module Decoder = struct
