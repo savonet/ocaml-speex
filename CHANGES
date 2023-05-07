@@ -1,3 +1,7 @@
+0.4.2 (unreleased)
+=====
+* Deprecate `Decoder.eos`
+
 0.4.1 (04-01-2022)
 =====
 * Get rid of naked pointers.
