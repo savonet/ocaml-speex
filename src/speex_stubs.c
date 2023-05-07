@@ -537,6 +537,27 @@ CAMLprim value ocaml_speex_encode_page_int(value e_state, value o_chans,
   CAMLreturn(ret);
 }
 
+CAMLprim value ocaml_speex_encoder_eos(value v, value o_stream_state) {
+  CAMLparam2(v, o_stream_state);
+  ogg_packet op;
+  ogg_stream_state *os = Stream_state_val(o_stream_state);
+  cenc_t *cenc = Enc_val(v);
+  int state = cenc->position - 1;
+  void *enc = cenc->enc;
+  int frame_size;
+  speex_encoder_ctl(enc, SPEEX_GET_FRAME_SIZE, &frame_size);
+
+  op.packet = (unsigned char *)NULL;
+  op.bytes = 0;
+  op.b_o_s = 0;
+  op.e_o_s = 1;
+  op.granulepos = (state + 1) * frame_size;
+  op.packetno = 2 + state;
+  ogg_stream_packetin(os, &op);
+
+  CAMLreturn(Val_unit);
+}
+
 /* Decoder API */
 
 typedef struct cdec_t {

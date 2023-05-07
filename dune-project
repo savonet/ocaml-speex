@@ -1,5 +1,5 @@
 (lang dune 2.8)
-(version 0.5.0)
+(version 0.4.1)
 (name speex)
 (source (github savonet/ocaml-speex))
 (license GPL-2.0)
